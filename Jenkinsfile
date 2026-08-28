@@ -19,7 +19,8 @@ pipeline {
 		sh '''
 		   gitleaks detect \
 		    --source . \
-		    --verbose
+		    --report-format sarif \
+		    --report-path gitleaks.sarif
 		'''
 	     }
 	}
