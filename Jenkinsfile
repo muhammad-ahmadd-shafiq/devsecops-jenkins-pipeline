@@ -14,6 +14,16 @@ pipeline {
             }
         }
 
+	stage('Gitleak Scans') {
+	    steps {
+		sh '''
+		   gitleaks detect \
+		    --source . \
+		    --verbose
+		'''
+	     }
+	}
+
         stage('Install Dependencies') {
             steps {
                 sh '''
