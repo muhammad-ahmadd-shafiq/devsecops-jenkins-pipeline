@@ -50,7 +50,7 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    bandit -r . -x ./venv,test/,__pycache__ -f txt -l
+                    bandit -r . -x ./venv,tests/,__pycache__ -f txt -l
                 '''
             }
         }
