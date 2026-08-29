@@ -63,15 +63,17 @@ pipeline {
                 '''
             }
         }
-	stage('Trivy Config Scan') {
-	    steps {
-		sh '''
-		    trivy config . \
-		    --severity HIGH,CRITICAL \
-		    --exit-code 1
-		'''
-	    }
-	}
+
+        stage('Trivy Config Scan') {
+            steps {
+                sh '''
+                    trivy config . \
+                    --severity HIGH,CRITICAL \
+                    --exit-code 1
+                '''
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 sh '''
@@ -114,6 +116,24 @@ pipeline {
                     sh '''
                         echo $TOKEN | docker login ghcr.io -u $USERNAME --password-stdin
                         docker push $IMAGE_NAME:$IMAGE_TAG
+                    '''
+                }
+            }
+        }
+
+        stage('Sign Image') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'cosign-key', variable: 'COSIGN_PRIVATE_KEY')
+                ]) {
+                    sh '''
+                        echo "$COSIGN_PRIVATE_KEY" > cosign.key
+
+                        COSIGN_PASSWORD="" \
+                        cosign sign \
+                        --key cosign.key \
+                        ghcr.io/muhammad-ahmadd-shafiq/devsecops-app:${IMAGE_TAG} \
+                        --yes
                     '''
                 }
             }
