@@ -77,7 +77,7 @@ pipeline {
                 sh '''
                     trivy image \
                     --exit-code 1 \
-                    --severity HIGH,CRITICAL \
+                    --severity HIGH,CRITICAL --ignore-unfixed \
                     $IMAGE_NAME:$IMAGE_TAG
                 '''
             }

@@ -1,10 +1,9 @@
 venv/
-__pycache__/
-.pytest_cache/
 .git/
+.pytest_cache/
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
-.coverage
-gitleaks.sarif
 sbom.json
+gitleaks.sarif

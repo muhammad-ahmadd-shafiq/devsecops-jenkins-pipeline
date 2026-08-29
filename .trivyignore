@@ -1,0 +1,6 @@
+# perl-base - CRITICAL - no upstream fix available as of 2026-08-29, base-image transitive dep, monitored
+CVE-2026-13221
+
+# util-linux family - no fix available, low exploitability (local-only)
+CVE-2026-3184
+CVE-2022-0563
