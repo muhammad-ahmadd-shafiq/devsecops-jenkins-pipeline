@@ -7,3 +7,5 @@ __pycache__/
 *.pyd
 sbom.json
 gitleaks.sarif
+cosign.key
+
