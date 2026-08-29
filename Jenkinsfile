@@ -14,23 +14,43 @@ pipeline {
             }
         }
 
-	stage('Gitleak Scans') {
-	    steps {
-		sh '''
-		   gitleaks detect \
-		    --source . \
-		    --report-format sarif \
-		    --report-path gitleaks.sarif
-		'''
-	     }
-	}
+        stage('Gitleaks Scan') {
+            steps {
+                sh '''
+                    gitleaks detect \
+                    --source . \
+                    --report-format sarif \
+                    --report-path gitleaks.sarif
+                '''
+            }
+        }
+
+        stage('Trivy FS Scan') {
+            steps {
+                sh '''
+                    trivy fs . \
+                    --exit-code 1 \
+                    --severity HIGH,CRITICAL
+                '''
+            }
+        }
 
         stage('Install Dependencies') {
             steps {
                 sh '''
                     python3 -m venv venv
                     . venv/bin/activate
+                    pip install --upgrade pip
                     pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Bandit SAST') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    bandit -r . -f txt
                 '''
             }
         }
@@ -52,6 +72,28 @@ pipeline {
             }
         }
 
+        stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                    trivy image \
+                    --exit-code 1 \
+                    --severity HIGH,CRITICAL \
+                    $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Generate SBOM') {
+            steps {
+                sh '''
+                    trivy image \
+                    --format cyclonedx \
+                    --output sbom.json \
+                    $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
+
         stage('Push Docker Image') {
             steps {
                 withCredentials([
@@ -61,10 +103,8 @@ pipeline {
                         passwordVariable: 'TOKEN'
                     )
                 ]) {
-
                     sh '''
                         echo $TOKEN | docker login ghcr.io -u $USERNAME --password-stdin
-
                         docker push $IMAGE_NAME:$IMAGE_TAG
                     '''
                 }
@@ -73,6 +113,14 @@ pipeline {
     }
 
     post {
+        always {
+            archiveArtifacts(
+                artifacts: 'gitleaks.sarif,sbom.json',
+                fingerprint: true,
+                allowEmptyArchive: true
+            )
+        }
+
         success {
             echo 'Pipeline completed successfully.'
         }
