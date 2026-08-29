@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "ghcr.io/muhammad-ahmadd-shafiq/devsecops-app"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = "${GIT_COMMIT.take(7)}"
     }
 
     stages {
@@ -63,7 +63,15 @@ pipeline {
                 '''
             }
         }
-
+	stage('Trivy Config Scan') {
+	    steps {
+		sh '''
+		    trivy config . \
+		    --severity HIGH,CRITICAL \
+		    --error-code 1
+		'''
+	    }
+	}
         stage('Build Docker Image') {
             steps {
                 sh '''
