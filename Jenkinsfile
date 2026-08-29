@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "ghcr.io/muhammad-ahmadd-shafiq/devsecops-app"
-        IMAGE_TAG = "${GIT_COMMIT.take(7)}"
+        IMAGE_TAG  = "${GIT_COMMIT.take(7)}"
     }
 
     stages {
@@ -87,7 +87,8 @@ pipeline {
                 sh '''
                     trivy image \
                     --exit-code 1 \
-                    --severity HIGH,CRITICAL --ignore-unfixed \
+                    --severity HIGH,CRITICAL \
+                    --ignore-unfixed \
                     $IMAGE_NAME:$IMAGE_TAG
                 '''
             }
@@ -124,15 +125,14 @@ pipeline {
         stage('Sign Image') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'cosign-key', variable: 'COSIGN_PRIVATE_KEY')
+                    file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY')
                 ]) {
                     sh '''
-                        echo "$COSIGN_PRIVATE_KEY" > cosign.key
+                        export COSIGN_PASSWORD=""
 
-                        COSIGN_PASSWORD="" \
                         cosign sign \
-                        --key cosign.key \
-                        ghcr.io/muhammad-ahmadd-shafiq/devsecops-app:${IMAGE_TAG} \
+                        --key $COSIGN_KEY \
+                        $IMAGE_NAME:$IMAGE_TAG \
                         --yes
                     '''
                 }
