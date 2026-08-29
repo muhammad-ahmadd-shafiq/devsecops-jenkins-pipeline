@@ -126,10 +126,9 @@ pipeline {
             steps {
                 withCredentials([
                     file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY')
+		    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
                 ]) {
                     sh '''
-                        export COSIGN_PASSWORD=""
-
                         cosign sign \
                         --key $COSIGN_KEY \
                         $IMAGE_NAME:$IMAGE_TAG \
