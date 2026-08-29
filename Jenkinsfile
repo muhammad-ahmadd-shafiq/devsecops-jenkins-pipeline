@@ -68,7 +68,7 @@ pipeline {
 		sh '''
 		    trivy config . \
 		    --severity HIGH,CRITICAL \
-		    --error-code 1
+		    --exit-code 1
 		'''
 	    }
 	}
