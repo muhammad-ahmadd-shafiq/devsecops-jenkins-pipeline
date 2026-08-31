@@ -184,20 +184,31 @@ pipeline {
         
         success {
             echo 'Pipeline completed successfully.'
-            slackSend(
-                channel: '#devsecops-pipeline',
-                color: 'good',
-                message: "Success: ${JOB_NAME} #${BUILD_NUMBER} - Image: ${IMAGE_NAME}:${IMAGE_TAG}"
-            )
+            withCredentials([
+                string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')
+            ]) {
+                sh '''
+                    curl -X POST \
+                      -H "Content-Type: application/json" \
+                      --data '{"text":"SUCCESS: DevSecOps Pipeline #'"${BUILD_NUMBER}"' - Image: '"${IMAGE_NAME}:${IMAGE_TAG}"'"}' \
+                      $SLACK_WEBHOOK
+                '''
+            }
         }
         
         failure {
             echo 'Pipeline failed.'
-            slackSend(
-                channel: '#devsecops-pipeline',
-                color: 'danger',
-                message: "Failed: ${JOB_NAME} #${BUILD_NUMBER} - Check Jenkins console for details"
-            )
+            withCredentials([
+                string(credentialsId: 'slack-webhook', variable: 'SLACK_WEBHOOK')
+            ]) {
+                sh '''
+                    curl -X POST \
+                      -H "Content-Type: application/json" \
+                      --data '{"text":"FAILED: DevSecOps Pipeline #'"${BUILD_NUMBER}"' - Check Jenkins console for details"}' \
+                      $SLACK_WEBHOOK
+                '''
+            }
         }
     }
 }
+
