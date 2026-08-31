@@ -105,6 +105,40 @@ pipeline {
             }
         }
 
+        stage('Run Container') {
+            steps {
+                sh '''
+                    docker rm -f app-test || true
+                    docker run -d \
+                    --name app-test \
+                    -p 5000:5000 \
+                    $IMAGE_NAME:$IMAGE_TAG
+                    sleep 15
+                '''
+            }
+        }
+
+        stage('OWASP ZAP Scan') {
+            steps {
+                sh '''
+                    docker run --rm \
+                    --network host \
+                    ghcr.io/zaproxy/zaproxy:stable \
+                    zap-baseline.py \
+                    -t http://localhost:5000 \
+                    -I
+                '''
+            }
+        }
+
+        stage('Cleanup Container') {
+            steps {
+                sh '''
+                    docker rm -f app-test || true
+                '''
+            }
+        }
+
         stage('Push Docker Image') {
             steps {
                 withCredentials([
@@ -126,7 +160,7 @@ pipeline {
             steps {
                 withCredentials([
                     file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY'),
-		    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
+                    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
                 ]) {
                     sh '''
                         cosign sign \
@@ -147,13 +181,23 @@ pipeline {
                 allowEmptyArchive: true
             )
         }
-
+        
         success {
             echo 'Pipeline completed successfully.'
+            slackSend(
+                channel: '#devsecops-pipeline',
+                color: 'good',
+                message: "Success: ${JOB_NAME} #${BUILD_NUMBER} - Image: ${IMAGE_NAME}:${IMAGE_TAG}"
+            )
         }
-
+        
         failure {
             echo 'Pipeline failed.'
+            slackSend(
+                channel: '#devsecops-pipeline',
+                color: 'danger',
+                message: "Failed: ${JOB_NAME} #${BUILD_NUMBER} - Check Jenkins console for details"
+            )
         }
     }
 }
