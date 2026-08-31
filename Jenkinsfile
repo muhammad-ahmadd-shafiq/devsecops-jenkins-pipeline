@@ -125,7 +125,7 @@ pipeline {
         stage('Sign Image') {
             steps {
                 withCredentials([
-                    file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY')
+                    file(credentialsId: 'cosign-key', variable: 'COSIGN_KEY'),
 		    string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
                 ]) {
                     sh '''
