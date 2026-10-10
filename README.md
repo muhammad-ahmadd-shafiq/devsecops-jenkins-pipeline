@@ -1,5 +1,14 @@
 # DevSecOps Security-Gated CI/CD Pipeline
 
+![Jenkins](https://img.shields.io/badge/Jenkins-%23D24939.svg?style=for-the-badge&logo=jenkins&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![Trivy](https://img.shields.io/badge/Trivy-1904DA?style=for-the-badge&logo=aqua&logoColor=white)
+![OWASP ZAP](https://img.shields.io/badge/OWASP_ZAP-005EA6?style=for-the-badge&logo=owasp&logoColor=white)
+![Slack](https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=slack&logoColor=white)
+
 A production-shaped Jenkins CI/CD pipeline for a containerized Flask application, hardened with security gates at every single stage: secret scanning, SAST, SCA, container scanning, SBOM generation, cryptographic image signing, and DAST. This isn't a pipeline that just reports vulnerabilities. Every gate is enforced, meaning a failing check stops the build before an insecure artifact can move any further.
 
 ## Why This Exists
@@ -156,6 +165,26 @@ Both pipeline success and security-gate failures trigger alerts, so a broken gat
 ├── .trivyignore          # Documented, justified CVE exceptions
 └── .dockerignore
 ```
+## Required Jenkins Setup
+
+### Prerequisites
+Ensure your Jenkins host/agent environment has the following tools installed and available in its system PATH:
+* **Docker Engine** (with socket mounted: `/var/run/docker.sock`)
+* **Gitleaks** — Secret scanner
+* **Bandit** — Python SAST analyzer
+* **Trivy** — SCA, IaC, and Container image scanner
+* **Syft** — SBOM generation CLI
+* **Cosign** — Keypair container image signing tool
+* **OWASP ZAP** — DAST runtime scanner (`zaproxy/zap-stable` image)
+
+### Required Credentials Store Entries
+Add these exact credential IDs in **Jenkins -> Manage Jenkins -> Credentials**:
+
+| Credential ID | Type | Purpose |
+| :--- | :--- | :--- |
+| `ghcr-credentials` | Username with password | GHCR registry authentication |
+| `slack-token` | Secret text | Slack Webhook/Token for alerts |
+| `cosign-private-key` | Secret file / text | Private key for cryptographic image signing |
 
 ## Running Locally
 
@@ -197,3 +226,11 @@ To run the full pipeline, point a Jenkins instance (with Docker socket access an
 ---
 
 *Built as a hands-on DevSecOps portfolio project to demonstrate security-gated CI/CD, supply-chain integrity, and Jenkins pipeline engineering.*
+
+## License
+
+This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
+
+## Author
+
+* **Muhammad Ahmad Shafiq** - [GitHub Profile](https://github.com/muhammad-ahmadd-shafiq)
